@@ -51,7 +51,7 @@ Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 Title.BorderSizePixel = 0
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "Location Manager"
+Title.Text = "Soren"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 16.000
 
@@ -531,3 +531,86 @@ end)
 
 -- Initial state
 Frame.Visible = true
+
+-- FPS Optimizer with Black Screen
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- Create black screen overlay
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BlackScreenOptimizer"
+screenGui.IgnoreGuiInset = true
+screenGui.DisplayOrder = 999999 -- Make sure it's on top
+
+local blackFrame = Instance.new("Frame")
+blackFrame.Size = UDim2.new(1, 0, 1, 0)
+blackFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+blackFrame.BorderSizePixel = 0
+blackFrame.Parent = screenGui
+blackFrame.Visible = false
+
+-- Add status text
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(1, 0, 0, 30)
+statusText.Position = UDim2.new(0, 0, 0, 10)
+statusText.BackgroundTransparency = 1
+statusText.TextColor3 = Color3.new(1, 1, 1)
+statusText.Text = "Press DELETE to restore screen"
+statusText.TextSize = 18
+statusText.Font = Enum.Font.GothamBold
+statusText.Parent = blackFrame
+
+-- Variables to store original settings
+local originalRenderStepped = nil
+local optimized = false
+
+-- Function to optimize performance
+local function toggleOptimizer()
+    optimized = not optimized
+    
+    if optimized then
+        -- Show black screen
+        blackFrame.Visible = true
+        
+        -- Reduce render frequency
+        originalRenderStepped = RunService.RenderStepped:Connect(function()
+            game:GetService("RunService"):Set3dRenderingEnabled(false)
+            settings().Rendering.QualityLevel = 1
+        end)
+        
+        -- Disable unnecessary rendering
+        UserSettings().GameSettings.MasterVolume = 0
+        settings().Rendering.EagerBulkExecution = false
+        
+        print("Performance mode enabled - Press DELETE to restore")
+    else
+        -- Restore screen
+        blackFrame.Visible = false
+        
+        -- Restore render frequency
+        if originalRenderStepped then
+            originalRenderStepped:Disconnect()
+        end
+        
+        -- Restore rendering
+        game:GetService("RunService"):Set3dRenderingEnabled(true)
+        settings().Rendering.QualityLevel = 10
+        UserSettings().GameSettings.MasterVolume = 1
+        settings().Rendering.EagerBulkExecution = true
+        
+        print("Performance mode disabled - Screen restored")
+    end
+end
+
+-- Add screen GUI
+screenGui.Parent = game:GetService("CoreGui")
+
+-- Listen for DELETE key
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Delete then
+        toggleOptimizer()
+    end
+end)
+
+print("Screen optimizer loaded!")
+print("Press DELETE to toggle black screen mode")
