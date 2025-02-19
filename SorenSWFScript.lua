@@ -530,4 +530,4 @@ game:GetService("UserInputService").InputBegan:Connect(function(input)
 end)
 
 -- Initial state
-Frame.Visible = false
+Frame.Visible = true
